@@ -32,6 +32,28 @@ struct sched_param main_param;
 struct sched_param fib10_param;
 struct sched_param fib20_param;
 
+long long fib(int n){
+    long long first = 0, second = 1, next;
+
+    for (int i = 0; i < n; i++) {
+        if (i <= 1) {
+            next = i;
+        } else {
+            next = first + second;
+            first = second;
+            second = next;
+        }
+    }
+    return next;
+}
+
+void fib10(){
+
+}
+
+void fib20(){
+
+}
 
 // functions
 void main() //this needs to be changed
