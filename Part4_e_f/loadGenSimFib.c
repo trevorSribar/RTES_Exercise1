@@ -70,7 +70,7 @@ unsigned long long fib(int n){
 
 void fib10(){
     clock_gettime(ClockType, &start);
-    for(int i = 0; i < 4167; i++)
+    for(int i = 0; i < NumRunFibInFib10; i++)
     fib(MAX_FIB_DUR);
     clock_gettime(ClockType, &end);
     syslog(LOG_INFO, "fib10 completed at %f s, which took %d.%ds and %s ns", 
@@ -81,7 +81,15 @@ void fib10(){
 }
 
 void fib20(){
-
+    clock_gettime(ClockType, &start);
+    for(int i = 0; i < NumRunFibInFib20; i++)
+    fib(MAX_FIB_DUR);
+    clock_gettime(ClockType, &end);
+    syslog(LOG_INFO, "fib20 completed at %f s, which took %d.%ds and %s ns", 
+        (0.0 + end.tv_sec + end.tv_nsec) / NS_PER_SEC, 
+        end.tv_sec - start.tv_sec,
+        (int)((end.tv_nsec - start.tv_nsec)/NS_PER_US),
+        (end.tv_nsec - start.tv_nsec)%NS_PER_US);
 }
 
 void setFib10NumRun(){//should be called after initializing threads
@@ -107,6 +115,7 @@ void setFib10NumRun(){//should be called after initializing threads
             break;
         }
     }
+    syslog(LOG_INFO, "Never got exactly 10ms, most recent was was %d", NumRunFibInFib10);
 }
 void setFib20NumRun(){//should be called after initializing threads
     int lastRunTimeNS = 0;
@@ -131,6 +140,7 @@ void setFib20NumRun(){//should be called after initializing threads
             break;
         }
     }
+    syslog(LOG_INFO, "Never got exactly 10ms, most recent was was %d", NumRunFibInFib10);
 }
 
 // functions
