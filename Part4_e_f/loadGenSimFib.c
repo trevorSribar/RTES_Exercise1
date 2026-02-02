@@ -16,20 +16,18 @@
 #include <stdlib.h>
 #include <time.h>
 #include <syslog.h>
+#include <unistd.h> 
+#include <stdio.h>
+#include <errno.h>
 
 #define MS_PER_SEC (1000)
-#define NS_PER_MS (1000000)
+#define NS_PER_US (1000)
 #define NS_PER_SEC (1000000000)
 
-#define MAX_PRIORITY (sched_get_priority_max(SCHED_FIFO))
-#define MIN_PRIORITY (sched_get_priority_min(SCHED_FIFO))
-#if (MAX_PRIORITY > MIN_PRIORITY)
+#define MAX_PRIORITY 99
+#define MIN_PRIORITY 88
     #define FIB10_PRIORITY (MIN_PRIORITY + 2)
     #define FIB20_PRIORITY (MIN_PRIORITY + 1)
-#else
-    #define FIB10_PRIORITY (MIN_PRIORITY - 2) 
-    #define FIB20_PRIORITY (MIN_PRIORITY - 1)
-#endif
 #define MAIN_PRIORITY (MAX_PRIORITY)
 #define MAX_FIB_DUR 93
 
@@ -64,7 +62,11 @@ void fib10(){
     clock_gettime(CLOCK_MONOTONIC_RAW, &start);
     fib(MAX_FIB_DUR);
     clock_gettime(CLOCK_MONOTONIC_RAW, &end);
-    syslog(LOG_INFO, "fib10 completed at %f s in %f ms", end.tv_sec + end.tv_nsec / NS_PER_SEC, (end.tv_sec - start.tv_sec) * MS_PER_SEC + (end.tv_nsec - start.tv_nsec) / NS_PER_MS);
+    syslog(LOG_INFO, "fib10 completed at %f s, which took %d.%ds and %s ns", 
+        (0.0 + end.tv_sec + end.tv_nsec) / NS_PER_SEC, 
+        end.tv_sec - start.tv_sec,
+        (int)((end.tv_nsec - start.tv_nsec)/NS_PER_US),
+        (end.tv_nsec - start.tv_nsec)%NS_PER_US);
 }
 
 void fib20(){
@@ -97,8 +99,8 @@ int main()
 
     if (errorHandler_main || errorHandler_fib10 || errorHandler_fib20) // returns 0 on success, so on an error it will throw the errors & print below.
    {
-       printf("ERROR; sched_setscheduler errorHandler was thrown\n");
-       printf("Quick fix: try running with sudo.\n");
+       //printf("ERROR; sched_setscheduler errorHandler was thrown\n");
+       //printf("Quick fix: try running with sudo.\n");
        perror("sched_setschduler, try running with sudo"); exit(-1);
    }
 
@@ -111,14 +113,13 @@ int main()
 
    if (errorHandler_fib10 || errorHandler_fib20)
    {
-       printf("ERROR; pthread_create() errorHandler_fib10 is %d\n", errorHandler_fib10);
-       printf("ERROR; pthread_create() errorHandler_fib20 is %d\n", errorHandler_fib20);
+       //printf("ERROR; pthread_create() errorHandler_fib10 is %d\n", errorHandler_fib10);
+       //printf("ERROR; pthread_create() errorHandler_fib20 is %d\n", errorHandler_fib20);
        perror("pthread_create, failed to create thread");
        exit(-1);
    }
 
    //code for running scheduled events
-
 
 
    pthread_join(fib10_thread, NULL); // once the thread finnishes running, it will come back to main which kills the thread
