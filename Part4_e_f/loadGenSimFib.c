@@ -13,6 +13,7 @@
 // include files
 #define _GNU_SOURCE
 #include <pthread.h>
+#include <stdlib.h>
 #include <time.h>
 #include <syslog.h>
 
@@ -38,7 +39,7 @@ static pthread_attr_t main_sched_attr, fib10_sched_attr, fib20_sched_attr;
 static struct sched_param main_param;
 static struct sched_param fib10_param;
 static struct sched_param fib20_param;
-static int errorHandler_main, erorrHandler_fib10, errorHandler_fib20;
+static int errorHandler_main, errorHandler_fib10, errorHandler_fib20;
 
 //timing
 static struct timespec start = {0, 0};
@@ -71,7 +72,7 @@ void fib20(){
 }
 
 // functions
-void main()
+int main()
 {
     //log initialization
     openlog("LOG_Exercise1_Part4_e_f_Fib", LOG_PID, LOG_USER);
@@ -105,8 +106,8 @@ void main()
    pthread_attr_setschedparam(&fib10_sched_attr, &fib10_param);
    pthread_attr_setschedparam(&fib20_sched_attr, &fib20_param);
 
-   errorHandler_fib10 = pthread_create(&fib10_thread, &fib10_sched_attr, fib10, (void *)0); // creates a thread with the parameters defined above that executes delay_test
-   errorHandler_fib20 = pthread_create(&fib20_thread, &fib20_sched_attr, fib20, (void *)0);
+   errorHandler_fib10 = pthread_create(&fib10_thread, &fib10_sched_attr, &fib10, (void *)0); // creates a thread with the parameters defined above that executes delay_test
+   errorHandler_fib20 = pthread_create(&fib20_thread, &fib20_sched_attr, &fib20, (void *)0);
 
    if (errorHandler_fib10 || errorHandler_fib20)
    {
@@ -129,4 +130,6 @@ void main()
      perror("attr destroy fib10");
    if(pthread_attr_destroy(&fib20_sched_attr) != 0)
      perror("attr destroy fib20");
+
+    return 0;
 }
