@@ -31,6 +31,7 @@ pthread_attr_t main_sched_attr, fib10_sched_attr, fib20_sched_attr;
 struct sched_param main_param;
 struct sched_param fib10_param;
 struct sched_param fib20_param;
+int errorHandler_main, erorrHandler_fib10, errorHandler_fib20;
 
 
 // functions
@@ -49,21 +50,20 @@ void main() //this needs to be changed
     main_param.sched_priority = MAIN_PRIORITY;// sets main to max priority
     fib10_param.sched_priority = FIB10_PRIORITY;
     fib20_param.sched_priority = FIB20_PRIORITY;
-    rc=sched_setscheduler(getpid(), SCHED_FIFO, &main_param);// updates the scheduler with max priority for this thread (main)
+    errorHandler_main=sched_setscheduler(getpid(), SCHED_FIFO, &main_param);// updates the scheduler with max priority for this thread (main)
+    errorHandler_fib10=sched_setscheduler(getpid(), SCHED_FIFO, &fib10_param);
+    errorHandler_fib20=sched_setscheduler(getpid(), SCHED_FIFO, &fib20_param);
 
-
-   if (rc) // returns 0 on success, so on an error it will throw the errors & print below.
+    if (errorHandler_main || errorHandler_fib10 || errorHandler_fib20) // returns 0 on success, so on an error it will throw the errors & print below.
    {
-       printf("ERROR; sched_setscheduler rc is %d\n", rc);
+       printf("ERROR; sched_setscheduler errorHandler was thrown\n");
        printf("Quick fix: try running with sudo.\n");
        perror("sched_setschduler"); exit(-1);
    }
 
-   printf("After adjustments to scheduling policy:\n");
-   print_scheduler();
-
-   main_param.sched_priority = rt_max_prio;
    pthread_attr_setschedparam(&main_sched_attr, &main_param); // Sets the schedule parameters to rt_max_prio
+   pthread_attr_setschedparam(&fib10_sched_attr, &fib10_param);
+   pthread_attr_setschedparam(&fib20_sched_attr, &fib20_param);
 
    rc = pthread_create(&main_thread, &main_sched_attr, delay_test, (void *)0); // creates a thread with the parameters defined above that executes delay_test
 
