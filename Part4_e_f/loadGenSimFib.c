@@ -24,6 +24,7 @@
     #define FIB20_PRIORITY (MIN_PRIORITY - 1)
 #endif
 #define MAIN_PRIORITY (MAX_PRIORITY)
+#define MAX_FIB_DUR 93
 
 // structs
 pthread_t main_thread, fib10_thread, fib20_thread;
@@ -33,8 +34,8 @@ struct sched_param fib10_param;
 struct sched_param fib20_param;
 int errorHandler_main, erorrHandler_fib10, errorHandler_fib20;
 
-long long fib(int n){
-    long long first = 0, second = 1, next;
+unsigned long long fib(int n){
+    unsigned long long first = 0, second = 1, next;
 
     for (int i = 0; i < n; i++) {
         if (i <= 1) {
@@ -49,7 +50,7 @@ long long fib(int n){
 }
 
 void fib10(){
-
+    
 }
 
 void fib20(){
