@@ -33,6 +33,7 @@
 #define ClockType CLOCK_MONOTONIC_RAW
 
 static int NumRunFibInFib10 = 4167; // Ntimes fib(MAX_FIB_DUR) is run so fib10 ~ 10ms
+static int NumRunFibInFib20 = 8334;
 
 // structs
 static pthread_t main_thread, fib10_thread, fib20_thread;
@@ -94,6 +95,29 @@ void setFib10NumRun(){//should be called after initializing threads
         }
         else if(lastRunTimeNS < 10000000){
             NumRunFibInFib10++;
+        }
+        else {
+            break;
+        }
+    }
+}
+void setFib20NumRun(){//should be called after initializing threads
+    int lastRunTimeNS = 0;
+    for(int i = 0; i < 10000; i++){
+        int avgRuntime = 0;
+        for(int j = 0; j<4; j++){
+            clock_gettime(ClockType, &start);
+            //release thread for fib20
+
+            clock_gettime(ClockType, &end);
+            avgRuntime = ((end.tv_sec - start.tv_sec) * NS_PER_SEC + (end.tv_nsec - start.tv_nsec))/4;
+        }
+        lastRunTimeNS = (int)avgRuntime;
+        if(lastRunTimeNS > 20000000){//20ms
+            NumRunFibInFib20--;
+        }
+        else if(lastRunTimeNS < 20000000){
+            NumRunFibInFib20++;
         }
         else {
             break;
