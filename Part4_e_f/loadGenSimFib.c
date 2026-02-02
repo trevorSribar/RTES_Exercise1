@@ -87,20 +87,27 @@ void main() //this needs to be changed
    pthread_attr_setschedparam(&fib10_sched_attr, &fib10_param);
    pthread_attr_setschedparam(&fib20_sched_attr, &fib20_param);
 
-   rc = pthread_create(&main_thread, &main_sched_attr, delay_test, (void *)0); // creates a thread with the parameters defined above that executes delay_test
+   errorHandler_fib10 = pthread_create(&fib10_thread, &fib10_sched_attr, fib10, (void *)0); // creates a thread with the parameters defined above that executes delay_test
+   errorHandler_fib20 = pthread_create(&fib20_thread, &fib20_sched_attr, fib20, (void *)0);
 
-   if (rc)
+   if (errorHandler_fib10 || errorHandler_fib20)
    {
-       printf("ERROR; pthread_create() rc is %d\n", rc);
+       printf("ERROR; pthread_create() errorHandler_fib10 is %d\n", errorHandler_fib10);
+       printf("ERROR; pthread_create() errorHandler_fib20 is %d\n", errorHandler_fib20);
        perror("pthread_create");
        exit(-1);
    }
 
-   pthread_join(main_thread, NULL); // once the thread finnishes running, it will come back to main which kills the thread
+   //code for running scheduled events
+
+
+   pthread_join(fib10_thread, NULL); // once the thread finnishes running, it will come back to main which kills the thread
+   pthread_join(fib20_thread, NULL);
 
    if(pthread_attr_destroy(&main_sched_attr) != 0) // destroys the thread attributes (cleans memory) 
      perror("attr destroy"); // throws an error about destroying the attributes if it fails to
-
-
-   printf("TEST COMPLETE\n");
+   if(pthread_attr_destroy(&fib10_sched_attr) != 0)
+     perror("attr destroy fib10");
+   if(pthread_attr_destroy(&fib20_sched_attr) != 0)
+     perror("attr destroy fib20");
 }
