@@ -11,6 +11,7 @@
 // Measure the time for each thread to complete & LCM (100ms)
 
 // include files
+#define _GNU_SOURCE
 #include <pthread.h>
 #include <time.h>
 
@@ -27,15 +28,19 @@
 #define MAX_FIB_DUR 93
 
 // structs
-pthread_t main_thread, fib10_thread, fib20_thread;
-pthread_attr_t main_sched_attr, fib10_sched_attr, fib20_sched_attr;
-struct sched_param main_param;
-struct sched_param fib10_param;
-struct sched_param fib20_param;
-int errorHandler_main, erorrHandler_fib10, errorHandler_fib20;
+static pthread_t main_thread, fib10_thread, fib20_thread;
+static pthread_attr_t main_sched_attr, fib10_sched_attr, fib20_sched_attr;
+static struct sched_param main_param;
+static struct sched_param fib10_param;
+static struct sched_param fib20_param;
+static int errorHandler_main, erorrHandler_fib10, errorHandler_fib20;
+
+//timing
+static struct timespec start = {0, 0};
+static struct timespec end = {0, 0};
 
 unsigned long long fib(int n){
-    volatile long long first = 0, second = 1, next;
+    volatile unsigned long long first = 0, second = 1, next;
 
     for (int i = 0; i < n; i++) {
         if (i <= 1) {
@@ -50,7 +55,9 @@ unsigned long long fib(int n){
 }
 
 void fib10(){
-    
+    clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+    fib(MAX_FIB_DUR);
+    clock_gettime(CLOCK_MONOTONIC_RAW, &end);
 }
 
 void fib20(){
