@@ -97,6 +97,7 @@ void setFib10NumRun(){//should be called after initializing threads
             NumRunFibInFib10++;
         }
         else {
+            syslog(LOG_INFO, "got exactly 10ms avg with iteration amount of %d", NumRunFibInFib10);
             break;
         }
     }
@@ -120,6 +121,7 @@ void setFib20NumRun(){//should be called after initializing threads
             NumRunFibInFib20++;
         }
         else {
+            syslog(LOG_INFO, "got exactly 20ms avg with iteration amount of %d", NumRunFibInFib20);
             break;
         }
     }
