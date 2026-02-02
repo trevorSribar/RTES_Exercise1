@@ -1,3 +1,6 @@
+// Date: 2/1/2026
+// Author: Trevor Sribar, Julian Werder
+// Class ECEN 5623 Real-Time Embedded Systems: Exercise 1 Part 4 Section C
 // https://www.i-programmer.info/programming/cc/13002-applying-c-deadline-scheduling.html?start=1
 //
 
