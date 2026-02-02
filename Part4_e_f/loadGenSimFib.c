@@ -14,6 +14,11 @@
 #define _GNU_SOURCE
 #include <pthread.h>
 #include <time.h>
+#include <syslog.h>
+
+#define MS_PER_SEC (1000)
+#define NS_PER_MS (1000000)
+#define NS_PER_SEC (1000000000)
 
 #define MAX_PRIORITY (sched_get_priority_max(SCHED_FIFO))
 #define MIN_PRIORITY (sched_get_priority_min(SCHED_FIFO))
@@ -58,6 +63,7 @@ void fib10(){
     clock_gettime(CLOCK_MONOTONIC_RAW, &start);
     fib(MAX_FIB_DUR);
     clock_gettime(CLOCK_MONOTONIC_RAW, &end);
+    syslog(LOG_INFO, "fib10 completed at %f s in %f ms", end.tv_sec + end.tv_nsec / NS_PER_SEC, (end.tv_sec - start.tv_sec) * MS_PER_SEC + (end.tv_nsec - start.tv_nsec) / NS_PER_MS);
 }
 
 void fib20(){
@@ -65,8 +71,12 @@ void fib20(){
 }
 
 // functions
-void main() //this needs to be changed
+void main()
 {
+    //log initialization
+    openlog("LOG_Exercise1_Part4_e_f_Fib", LOG_PID, LOG_USER);
+
+    //thread initialization
     pthread_attr_init(&main_sched_attr);// initializes the thread to default values, stored in the passed variable
     pthread_attr_init(&fib10_sched_attr);
     pthread_attr_init(&fib20_sched_attr);
@@ -107,6 +117,7 @@ void main() //this needs to be changed
    }
 
    //code for running scheduled events
+
 
 
    pthread_join(fib10_thread, NULL); // once the thread finnishes running, it will come back to main which kills the thread
