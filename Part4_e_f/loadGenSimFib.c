@@ -24,6 +24,8 @@
 #define MS_PER_SEC (1000)
 #define NS_PER_US (1000)
 #define NS_PER_SEC (1000000000)
+#define TWENTY_NS_IN_MS 20000000
+#define TEN_NS_IN_MS 10000000
 
 #define MAX_PRIORITY 99
 #define MIN_PRIORITY 88
@@ -33,8 +35,8 @@
 #define MAX_FIB_DUR 93
 #define ClockType CLOCK_MONOTONIC_RAW
 
-static int NumRunFibInFib10 = 4167; // Ntimes fib(MAX_FIB_DUR) is run so fib10 ~ 10ms
-static int NumRunFibInFib20 = 8334;
+static int NumRunFibInFib10 = 139; // Ntimes fib(MAX_FIB_DUR) is run so fib10 ~ 10ms
+static int NumRunFibInFib20 = 278;
 
 // structs
 static pthread_t fib10_thread, fib20_thread;
@@ -157,6 +159,10 @@ int main()
     //log initialization
     openlog("LOG_Exercise1_Part4_e_f_Fib", LOG_PID, LOG_USER);
 
+    //initialize semaphores
+    sem_init(&fib10sem, 0, 0);
+    sem_init(&fib20sem, 0, 0);
+
     //thread initialization
     pthread_attr_init(&main_sched_attr);// initializes the thread to default values, stored in the passed variable
     pthread_attr_init(&fib10_sched_attr);
@@ -197,16 +203,13 @@ int main()
        exit(-1);
    }
 
-   sem_init(&fib10sem, 0, 0);
-   sem_init(&fib20sem, 0, 0);
-
    while(1){
         //release 10 & 20, t0
         sem_post(&fib10sem);
         sem_post(&fib20sem);
 
         clock_gettime(CLOCK_MONOTONIC_RAW, &scheduletime);
-        scheduletime.tv_nsec += 20;
+        scheduletime.tv_nsec += TWENTY_NS_IN_MS;
         if(scheduletime.tv_nsec > 999999999){
             scheduletime.tv_nsec -= 1000000000;
             scheduletime.tv_sec++;
@@ -217,7 +220,7 @@ int main()
         sem_post(&fib10sem);
         
         clock_gettime(CLOCK_MONOTONIC_RAW, &scheduletime);
-        scheduletime.tv_nsec += 20;
+        scheduletime.tv_nsec += TWENTY_NS_IN_MS;
         if(scheduletime.tv_nsec > 999999999){
             scheduletime.tv_nsec -= 1000000000;
             scheduletime.tv_sec++;
@@ -228,7 +231,7 @@ int main()
         sem_post(&fib10sem);
 
         clock_gettime(CLOCK_MONOTONIC_RAW, &scheduletime);
-        scheduletime.tv_nsec += 10;
+        scheduletime.tv_nsec += TEN_NS_IN_MS;
         if(scheduletime.tv_nsec > 999999999){
             scheduletime.tv_nsec -= 1000000000;
             scheduletime.tv_sec++;
@@ -239,7 +242,7 @@ int main()
         sem_post(&fib20sem);
 
         clock_gettime(CLOCK_MONOTONIC_RAW, &scheduletime);
-        scheduletime.tv_nsec += 10;
+        scheduletime.tv_nsec += TEN_NS_IN_MS;
         if(scheduletime.tv_nsec > 999999999){
             scheduletime.tv_nsec -= 1000000000;
             scheduletime.tv_sec++;
@@ -250,7 +253,7 @@ int main()
         sem_post(&fib10sem);
 
         clock_gettime(CLOCK_MONOTONIC_RAW, &scheduletime);
-        scheduletime.tv_nsec += 20;
+        scheduletime.tv_nsec += TWENTY_NS_IN_MS;
         if(scheduletime.tv_nsec > 999999999){
             scheduletime.tv_nsec -= 1000000000;
             scheduletime.tv_sec++;
