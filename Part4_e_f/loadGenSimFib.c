@@ -37,7 +37,7 @@ static int NumRunFibInFib10 = 4167; // Ntimes fib(MAX_FIB_DUR) is run so fib10 ~
 static int NumRunFibInFib20 = 8334;
 
 // structs
-static pthread_t main_thread, fib10_thread, fib20_thread;
+static pthread_t fib10_thread, fib20_thread;
 static pthread_attr_t main_sched_attr, fib10_sched_attr, fib20_sched_attr;
 static struct sched_param main_param;
 static struct sched_param fib10_param;
@@ -68,28 +68,36 @@ unsigned long long fib(int n){
     return next;
 }
 
-void fib10(){
-    clock_gettime(ClockType, &start);
-    for(int i = 0; i < NumRunFibInFib10; i++)
-    fib(MAX_FIB_DUR);
-    clock_gettime(ClockType, &end);
-    syslog(LOG_INFO, "fib10 completed at %f s, which took %d.%ds and %s ns", 
-        (0.0 + end.tv_sec + end.tv_nsec) / NS_PER_SEC, 
-        end.tv_sec - start.tv_sec,
-        (int)((end.tv_nsec - start.tv_nsec)/NS_PER_US),
-        (end.tv_nsec - start.tv_nsec)%NS_PER_US);
+void* fib10(){
+    while(1){
+        sem_wait(&fib10sem);
+
+        clock_gettime(ClockType, &start);
+        for(int i = 0; i < NumRunFibInFib10; i++)
+        fib(MAX_FIB_DUR);
+        clock_gettime(ClockType, &end);
+        syslog(LOG_INFO, "fib10 completed at %f s, which took %ld.%lds and %ld ns", 
+            (0.0 + end.tv_sec + end.tv_nsec) / NS_PER_SEC, 
+            end.tv_sec - start.tv_sec,
+            (long)((end.tv_nsec - start.tv_nsec)/NS_PER_US),
+            (end.tv_nsec - start.tv_nsec)%NS_PER_US);
+    }
 }
 
-void fib20(){
-    clock_gettime(ClockType, &start);
-    for(int i = 0; i < NumRunFibInFib20; i++)
-    fib(MAX_FIB_DUR);
-    clock_gettime(ClockType, &end);
-    syslog(LOG_INFO, "fib20 completed at %f s, which took %d.%ds and %s ns", 
-        (0.0 + end.tv_sec + end.tv_nsec) / NS_PER_SEC, 
-        end.tv_sec - start.tv_sec,
-        (int)((end.tv_nsec - start.tv_nsec)/NS_PER_US),
-        (end.tv_nsec - start.tv_nsec)%NS_PER_US);
+void* fib20(){
+    while(1){
+        sem_wait(&fib20sem);
+
+        clock_gettime(ClockType, &start);
+        for(int i = 0; i < NumRunFibInFib20; i++)
+        fib(MAX_FIB_DUR);
+        clock_gettime(ClockType, &end);
+        syslog(LOG_INFO, "fib20 completed at %f s, which took %ld.%lds and %ld ns", 
+            (0.0 + end.tv_sec + end.tv_nsec) / NS_PER_SEC, 
+            end.tv_sec - start.tv_sec,
+            (long)((end.tv_nsec - start.tv_nsec)/NS_PER_US),
+            (end.tv_nsec - start.tv_nsec)%NS_PER_US);
+    }
 }
 
 void setFib10NumRun(){//should be called after initializing threads
@@ -101,7 +109,7 @@ void setFib10NumRun(){//should be called after initializing threads
             //release thread for fib10
 
             clock_gettime(ClockType, &end);
-            avgRuntime = ((end.tv_sec - start.tv_sec) * NS_PER_SEC + (end.tv_nsec - start.tv_nsec))/4;
+            avgRuntime += ((end.tv_sec - start.tv_sec) * NS_PER_SEC + (end.tv_nsec - start.tv_nsec))/4;
         }
         lastRunTimeNS = (int)avgRuntime;
         if(lastRunTimeNS > 10000000){//10ms
@@ -126,7 +134,7 @@ void setFib20NumRun(){//should be called after initializing threads
             //release thread for fib20
 
             clock_gettime(ClockType, &end);
-            avgRuntime = ((end.tv_sec - start.tv_sec) * NS_PER_SEC + (end.tv_nsec - start.tv_nsec))/4;
+            avgRuntime += ((end.tv_sec - start.tv_sec) * NS_PER_SEC + (end.tv_nsec - start.tv_nsec))/4;
         }
         lastRunTimeNS = (int)avgRuntime;
         if(lastRunTimeNS > 20000000){//20ms
@@ -178,8 +186,8 @@ int main()
    pthread_attr_setschedparam(&fib10_sched_attr, &fib10_param);
    pthread_attr_setschedparam(&fib20_sched_attr, &fib20_param);
 
-   errorHandler_fib10 = pthread_create(&fib10_thread, &fib10_sched_attr, &fib10, (void *)0); // creates a thread with the parameters defined above that executes delay_test
-   errorHandler_fib20 = pthread_create(&fib20_thread, &fib20_sched_attr, &fib20, (void *)0);
+   errorHandler_fib10 = pthread_create(&fib10_thread, &fib10_sched_attr, fib10, (void *)0); // creates a thread with the parameters defined above that executes delay_test
+   errorHandler_fib20 = pthread_create(&fib20_thread, &fib20_sched_attr, fib20, (void *)0);
 
    if (errorHandler_fib10 || errorHandler_fib20)
    {
