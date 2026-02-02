@@ -19,6 +19,7 @@
 #include <unistd.h> 
 #include <stdio.h>
 #include <errno.h>
+#include <semaphore.h>
 
 #define MS_PER_SEC (1000)
 #define NS_PER_US (1000)
@@ -43,7 +44,12 @@ static struct sched_param fib10_param;
 static struct sched_param fib20_param;
 static int errorHandler_main, errorHandler_fib10, errorHandler_fib20;
 
+//semaphores
+sem_t fib10sem;
+sem_t fib20sem;
+
 //timing
+static struct timespec scheduletime = {0, 0};
 static struct timespec start = {0, 0};
 static struct timespec end = {0, 0};
 
@@ -173,8 +179,69 @@ int main()
        exit(-1);
    }
 
-   //code for running scheduled events
+   sem_init(&fib10sem, 0, 0);
+   sem_init(&fib20sem, 0, 0);
 
+   while(1){
+        //release 10 & 20, t0
+        sem_post(&fib10sem);
+        sem_post(&fib20sem);
+
+        clock_gettime(CLOCK_MONOTONIC_RAW, &scheduletime);
+        scheduletime.tv_nsec += 20;
+        if(scheduletime.tv_nsec > 999999999){
+            scheduletime.tv_nsec -= 1000000000;
+            scheduletime.tv_sec++;
+        }
+        clock_nanosleep(CLOCK_MONOTONIC_RAW, TIMER_ABSTIME, &scheduletime, NULL);
+
+        //release 10, t20
+        sem_post(&fib10sem);
+        
+        clock_gettime(CLOCK_MONOTONIC_RAW, &scheduletime);
+        scheduletime.tv_nsec += 20;
+        if(scheduletime.tv_nsec > 999999999){
+            scheduletime.tv_nsec -= 1000000000;
+            scheduletime.tv_sec++;
+        }
+        clock_nanosleep(CLOCK_MONOTONIC_RAW, TIMER_ABSTIME, &scheduletime, NULL);
+
+        //release 10, t40
+        sem_post(&fib10sem);
+
+        clock_gettime(CLOCK_MONOTONIC_RAW, &scheduletime);
+        scheduletime.tv_nsec += 10;
+        if(scheduletime.tv_nsec > 999999999){
+            scheduletime.tv_nsec -= 1000000000;
+            scheduletime.tv_sec++;
+        }
+        clock_nanosleep(CLOCK_MONOTONIC_RAW, TIMER_ABSTIME, &scheduletime, NULL);
+
+        //release 20, t50
+        sem_post(&fib20sem);
+
+        clock_gettime(CLOCK_MONOTONIC_RAW, &scheduletime);
+        scheduletime.tv_nsec += 10;
+        if(scheduletime.tv_nsec > 999999999){
+            scheduletime.tv_nsec -= 1000000000;
+            scheduletime.tv_sec++;
+        }
+        clock_nanosleep(CLOCK_MONOTONIC_RAW, TIMER_ABSTIME, &scheduletime, NULL);
+
+        //release 10, t60
+        sem_post(&fib10sem);
+
+        clock_gettime(CLOCK_MONOTONIC_RAW, &scheduletime);
+        scheduletime.tv_nsec += 20;
+        if(scheduletime.tv_nsec > 999999999){
+            scheduletime.tv_nsec -= 1000000000;
+            scheduletime.tv_sec++;
+        }
+        clock_nanosleep(CLOCK_MONOTONIC_RAW, TIMER_ABSTIME, &scheduletime, NULL);
+
+        //release 10, t80
+        sem_post(&fib10sem);
+    }
 
    pthread_join(fib10_thread, NULL); // once the thread finnishes running, it will come back to main which kills the thread
    pthread_join(fib20_thread, NULL);
