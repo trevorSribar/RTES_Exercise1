@@ -1,0 +1,84 @@
+// Date: 2/1/2026
+// Author: Trevor Sribar, Julian Werder
+// Class ECEN 5623 Real-Time Embedded Systems: Exercise 1 Part 4 Section e & f
+// Description: Synthetic Load Generation and Simuation using Fibonacci
+
+// OUTLINE
+// Fib10 that takes 10ms to compute
+// Fib20 that takes 20ms to compute
+// Run both Fib10 and Fib20 in separate threads
+// Release Fib10 every 20ms and Fib20 every 50ms
+// Measure the time for each thread to complete & LCM (100ms)
+
+// include files
+#include <pthread.h>
+#include <time.h>
+
+#define MAX_PRIORITY (sched_get_priority_max(SCHED_FIFO))
+#define MIN_PRIORITY (sched_get_priority_min(SCHED_FIFO))
+#if (MAX_PRIORITY > MIN_PRIORITY)
+    #define FIB10_PRIORITY (MIN_PRIORITY + 2)
+    #define FIB20_PRIORITY (MIN_PRIORITY + 1)
+#else
+    #define FIB10_PRIORITY (MIN_PRIORITY - 2) 
+    #define FIB20_PRIORITY (MIN_PRIORITY - 1)
+#endif
+#define MAIN_PRIORITY (MAX_PRIORITY)
+
+// structs
+pthread_t main_thread, fib10_thread, fib20_thread;
+pthread_attr_t main_sched_attr, fib10_sched_attr, fib20_sched_attr;
+struct sched_param main_param;
+struct sched_param fib10_param;
+struct sched_param fib20_param;
+
+
+// functions
+void main() //this needs to be changed
+{
+    pthread_attr_init(&main_sched_attr);// initializes the thread to default values, stored in the passed variable
+    pthread_attr_init(&fib10_sched_attr);
+    pthread_attr_init(&fib20_sched_attr);
+    pthread_attr_setinheritsched(&main_sched_attr, PTHREAD_EXPLICIT_SCHED);// sets the new thread to use the schedule explicitly defined in the attribute object
+    pthread_attr_setinheritsched(&fib10_sched_attr, PTHREAD_EXPLICIT_SCHED);
+    pthread_attr_setinheritsched(&fib20_sched_attr, PTHREAD_EXPLICIT_SCHED);
+    pthread_attr_setschedpolicy(&main_sched_attr, SCHED_FIFO);// Sets the priority to FIFO
+    pthread_attr_setschedpolicy(&fib10_sched_attr, SCHED_FIFO);
+    pthread_attr_setschedpolicy(&fib20_sched_attr, SCHED_FIFO);
+
+    main_param.sched_priority = MAIN_PRIORITY;// sets main to max priority
+    fib10_param.sched_priority = FIB10_PRIORITY;
+    fib20_param.sched_priority = FIB20_PRIORITY;
+    rc=sched_setscheduler(getpid(), SCHED_FIFO, &main_param);// updates the scheduler with max priority for this thread (main)
+
+
+   if (rc) // returns 0 on success, so on an error it will throw the errors & print below.
+   {
+       printf("ERROR; sched_setscheduler rc is %d\n", rc);
+       printf("Quick fix: try running with sudo.\n");
+       perror("sched_setschduler"); exit(-1);
+   }
+
+   printf("After adjustments to scheduling policy:\n");
+   print_scheduler();
+
+   main_param.sched_priority = rt_max_prio;
+   pthread_attr_setschedparam(&main_sched_attr, &main_param); // Sets the schedule parameters to rt_max_prio
+
+   rc = pthread_create(&main_thread, &main_sched_attr, delay_test, (void *)0); // creates a thread with the parameters defined above that executes delay_test
+
+   if (rc)
+   {
+       printf("ERROR; pthread_create() rc is %d\n", rc);
+       perror("pthread_create");
+       exit(-1);
+   }
+
+   pthread_join(main_thread, NULL); // once the thread finnishes running, it will come back to main which kills the thread
+
+   if(pthread_attr_destroy(&main_sched_attr) != 0) // destroys the thread attributes (cleans memory) 
+     perror("attr destroy"); // throws an error about destroying the attributes if it fails to
+
+
+   printf("TEST COMPLETE\n");
+}
