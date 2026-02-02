@@ -98,7 +98,7 @@ void main()
    {
        printf("ERROR; sched_setscheduler errorHandler was thrown\n");
        printf("Quick fix: try running with sudo.\n");
-       perror("sched_setschduler"); exit(-1);
+       perror("sched_setschduler, try running with sudo"); exit(-1);
    }
 
    pthread_attr_setschedparam(&main_sched_attr, &main_param); // Sets the schedule parameters to rt_max_prio
@@ -112,7 +112,7 @@ void main()
    {
        printf("ERROR; pthread_create() errorHandler_fib10 is %d\n", errorHandler_fib10);
        printf("ERROR; pthread_create() errorHandler_fib20 is %d\n", errorHandler_fib20);
-       perror("pthread_create");
+       perror("pthread_create, failed to create thread");
        exit(-1);
    }
 
