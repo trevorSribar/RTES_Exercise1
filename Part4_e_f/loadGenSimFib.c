@@ -30,6 +30,9 @@
     #define FIB20_PRIORITY (MIN_PRIORITY + 1)
 #define MAIN_PRIORITY (MAX_PRIORITY)
 #define MAX_FIB_DUR 93
+#define ClockType CLOCK_MONOTONIC_RAW
+
+static int NumRunFibInFib10 = 4167; // Ntimes fib(MAX_FIB_DUR) is run so fib10 ~ 10ms
 
 // structs
 static pthread_t main_thread, fib10_thread, fib20_thread;
@@ -59,9 +62,10 @@ unsigned long long fib(int n){
 }
 
 void fib10(){
-    clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+    clock_gettime(ClockType, &start);
+    for(int i = 0; i < 4167; i++)
     fib(MAX_FIB_DUR);
-    clock_gettime(CLOCK_MONOTONIC_RAW, &end);
+    clock_gettime(ClockType, &end);
     syslog(LOG_INFO, "fib10 completed at %f s, which took %d.%ds and %s ns", 
         (0.0 + end.tv_sec + end.tv_nsec) / NS_PER_SEC, 
         end.tv_sec - start.tv_sec,
@@ -71,6 +75,30 @@ void fib10(){
 
 void fib20(){
 
+}
+
+void setFib10NumRun(){//should be called after initializing threads
+    int lastRunTimeNS = 0;
+    for(int i = 0; i < 10000; i++){
+        int avgRuntime = 0;
+        for(int j = 0; j<4; j++){
+            clock_gettime(ClockType, &start);
+            //release thread for fib10
+
+            clock_gettime(ClockType, &end);
+            avgRuntime = ((end.tv_sec - start.tv_sec) * NS_PER_SEC + (end.tv_nsec - start.tv_nsec))/4;
+        }
+        lastRunTimeNS = (int)avgRuntime;
+        if(lastRunTimeNS > 10000000){//10ms
+            NumRunFibInFib10--;
+        }
+        else if(lastRunTimeNS < 10000000){
+            NumRunFibInFib10++;
+        }
+        else {
+            break;
+        }
+    }
 }
 
 // functions
