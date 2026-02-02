@@ -35,7 +35,7 @@ struct sched_param fib20_param;
 int errorHandler_main, erorrHandler_fib10, errorHandler_fib20;
 
 unsigned long long fib(int n){
-    unsigned long long first = 0, second = 1, next;
+    volatile long long first = 0, second = 1, next;
 
     for (int i = 0; i < n; i++) {
         if (i <= 1) {
